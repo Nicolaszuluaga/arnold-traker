@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="es" class="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Arnold Split · Tracker</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%;transition:background .2s,color .2s}
+html.light,html.light body{background:#f0f0f0;color:#1a1a1a}
+html.dark,html.dark body{background:#111;color:#e8e8e8}
+
+.wrap{padding:16px;max-width:620px;margin:0 auto;font-family:system-ui,sans-serif}
+
+.top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px}
+h1{font-size:16px;font-weight:500}
+.top-right{display:flex;gap:6px;align-items:center}
+.icon-btn{display:flex;align-items:center;gap:4px;cursor:pointer;padding:4px 9px;border-radius:20px;border:0.5px solid;font-size:11px;font-family:inherit;background:transparent;transition:.2s}
+html.light .icon-btn{border-color:#ccc;color:#666}
+html.dark .icon-btn{border-color:#444;color:#aaa}
+
+.sub{text-align:center;font-size:11px;margin-bottom:12px}
+html.light .sub{color:#888}
+html.dark .sub{color:#666}
+
+/* ── Perfil chip ── */
+.profile-chip{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:10px;margin-bottom:12px;cursor:pointer;border:0.5px solid;transition:.15s}
+html.light .profile-chip{background:#fff;border-color:#ddd}
+html.dark .profile-chip{background:#1e1e1e;border-color:#333}
+.profile-chip:hover{border-color:#AFA9EC}
+.chip-info{font-size:11px;flex:1}
+html.light .chip-info{color:#444}
+html.dark .chip-info{color:#bbb}
+.chip-edit{font-size:10px;color:#7F77DD}
+
+/* ── Modal ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal{border-radius:14px;padding:20px;width:100%;max-width:400px;border:0.5px solid}
+html.light .modal{background:#fff;border-color:#ddd}
+html.dark .modal{background:#1a1a1a;border-color:#333}
+.modal-title{font-size:14px;font-weight:600;margin-bottom:14px;text-align:center}
+.modal-title i{color:#7F77DD;margin-right:5px}
+.field-group{margin-bottom:12px}
+.field-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+html.light .field-label{color:#888}
+html.dark .field-label{color:#666}
+.field-row{display:flex;gap:8px}
+.field-inp{width:100%;padding:7px 10px;border-radius:8px;border:0.5px solid;font-size:13px;font-family:inherit;outline:none}
+html.light .field-inp{background:#f5f5f5;border-color:#ddd;color:#1a1a1a}
+html.dark .field-inp{background:#2a2a2a;border-color:#444;color:#e8e8e8}
+.field-inp:focus{border-color:#AFA9EC}
+.select-group{display:flex;gap:6px;flex-wrap:wrap}
+.sel-btn{padding:5px 11px;border-radius:20px;border:0.5px solid;font-size:11px;cursor:pointer;font-family:inherit;background:transparent;transition:.15s}
+html.light .sel-btn{border-color:#ddd;color:#666}
+html.dark .sel-btn{border-color:#444;color:#888}
+.sel-btn.active{background:#EEEDFE;border-color:#AFA9EC;color:#3C3489}
+html.dark .sel-btn.active{background:#1a1830;border-color:#534AB7;color:#CECBF6}
+.modal-save{width:100%;margin-top:14px;padding:10px;border-radius:9px;border:none;background:#7F77DD;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+.modal-save:hover{background:#6B63CC}
+
+/* ── Stats constancia ── */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.stat-card{border-radius:8px;padding:8px 10px;text-align:center}
+html.light .stat-card{background:#e8e8e8}
+html.dark .stat-card{background:#1e1e1e}
+.stat-val{font-size:20px;font-weight:500}
+.stat-lbl{font-size:10px;margin-top:2px}
+html.light .stat-lbl{color:#888}
+html.dark .stat-lbl{color:#666}
+
+/* ── Tabs ── */
+.day-tabs{display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap;justify-content:center}
+.day-tab{font-size:11px;padding:5px 10px;border-radius:8px;border:0.5px solid;cursor:pointer;font-family:inherit;position:relative;transition:.15s}
+html.light .day-tab{background:#fff;border-color:#ddd;color:#666}
+html.dark .day-tab{background:#1e1e1e;border-color:#333;color:#888}
+.day-tab.today{box-shadow:0 0 0 2px #7F77DD}
+.day-tab.active-p{background:#EEEDFE;border-color:#AFA9EC;color:#3C3489;font-weight:500}
+.day-tab.active-t{background:#E1F5EE;border-color:#5DCAA5;color:#085041;font-weight:500}
+.day-tab.active-r{background:#F1EFE8;border-color:#D3D1C7;color:#5F5E5A;font-weight:500}
+.day-tab.missed{text-decoration:line-through;opacity:.5}
+.dot{width:6px;height:6px;border-radius:50%;position:absolute;top:3px;right:3px}
+
+/* ── Semana ── */
+.week-bar{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:14px}
+.week-bar button{font-size:13px;padding:4px 12px;border-radius:8px;cursor:pointer;font-family:inherit;background:transparent;transition:.15s}
+html.light .week-bar button{border:0.5px solid #ddd;color:#333}
+html.dark .week-bar button{border:0.5px solid #444;color:#ccc}
+.week-label{font-size:13px;font-weight:500;min-width:80px;text-align:center}
+
+/* ── Card ── */
+.card{border-radius:12px;padding:12px 14px;border:0.5px solid;margin-bottom:4px}
+.d-purple{background:#EEEDFE;border-color:#AFA9EC}
+.d-teal{background:#E1F5EE;border-color:#5DCAA5}
+.d-rest{background:#F1EFE8;border-color:#D3D1C7}
+html.dark .d-purple{background:#1a1830;border-color:#534AB7}
+html.dark .d-teal{background:#0d2219;border-color:#0F6E56}
+html.dark .d-rest{background:#1e1e1a;border-color:#444}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.card-title{font-size:14px;font-weight:500}
+html.light .card-title{color:#26215C}
+html.dark .card-title{color:#CECBF6}
+.badge{font-size:10px;padding:2px 9px;border-radius:20px;font-weight:500}
+.bp{background:#EEEDFE;color:#3C3489}
+.bt{background:#E1F5EE;color:#085041}
+.br{background:#F1EFE8;color:#5F5E5A}
+.section{margin-bottom:8px}
+.sec-label{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.lp{color:#534AB7}
+.lt{color:#0F6E56}
+html.dark .lp{color:#AFA9EC}
+html.dark .lt{color:#5DCAA5}
+
+/* ── Ejercicio row ── */
+.ex-row{border-radius:7px;padding:6px 8px;margin-bottom:4px;border:0.5px solid}
+html.light .ex-row{background:#fff}
+html.dark .ex-row{background:#1a1a1a}
+.ep{border-color:#AFA9EC}
+.et{border-color:#5DCAA5}
+html.dark .ep{border-color:#534AB7}
+html.dark .et{border-color:#0F6E56}
+.ex-top{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.ex-name{font-size:11px;flex:1;min-width:100px;font-weight:500}
+.ai-suggest-tag{font-size:9px;padding:1px 7px;border-radius:10px;white-space:nowrap;font-weight:500}
+.ai-suggest-tag.sug-purple{background:#EEEDFE;color:#534AB7}
+html.dark .ai-suggest-tag.sug-purple{background:#1a1830;color:#AFA9EC}
+.ai-suggest-tag.sug-teal{background:#E1F5EE;color:#0F6E56}
+html.dark .ai-suggest-tag.sug-teal{background:#0d2219;color:#5DCAA5}
+.ai-suggest-tag.sug-loading{background:#f5f5f5;color:#aaa}
+html.dark .ai-suggest-tag.sug-loading{background:#2a2a2a;color:#555}
+
+.ex-bottom{display:flex;align-items:center;gap:5px;margin-top:5px;flex-wrap:wrap}
+.sets-info{font-size:10px}
+html.light .sets-info{color:#888}
+html.dark .sets-info{color:#666}
+.inp-group{display:flex;align-items:center;gap:3px}
+.w-inp,.r-inp{font-size:11px;text-align:center;border-radius:5px;padding:2px 4px;font-family:inherit;border:0.5px solid;width:48px}
+html.light .w-inp,.r-inp{background:#f5f5f5;color:#1a1a1a;border-color:#ddd}
+html.dark .w-inp,.r-inp{background:#2a2a2a;color:#e8e8e8;border-color:#444}
+.inp-lbl{font-size:9px}
+html.light .inp-lbl{color:#aaa}
+html.dark .inp-lbl{color:#555}
+
+.diff-up{font-size:9px;padding:1px 5px;border-radius:4px;background:#E1F5EE;color:#085041;white-space:nowrap}
+.diff-down{font-size:9px;padding:1px 5px;border-radius:4px;background:#FCEBEB;color:#A32D2D;white-space:nowrap}
+.diff-same{font-size:9px;padding:1px 5px;border-radius:4px;white-space:nowrap}
+html.light .diff-same{background:#f0f0f0;color:#888}
+html.dark .diff-same{background:#2a2a2a;color:#666}
+
+/* ── Sugerencia IA (próxima semana) ── */
+.ai-box{margin-top:8px;padding:8px 10px;border-radius:8px;font-size:11px;border:0.5px solid;display:none}
+html.light .ai-box{background:#fafafa;border-color:#ddd}
+html.dark .ai-box{background:#1e1e1e;border-color:#333}
+.ai-box.loading{opacity:.6}
+.ai-title{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;color:#7F77DD}
+.ai-item{font-size:10px;padding:3px 0;border-bottom:0.5px solid}
+html.light .ai-item{border-color:#eee;color:#444}
+html.dark .ai-item{border-color:#2a2a2a;color:#bbb}
+.ai-item:last-child{border-bottom:none}
+.ai-rec{font-weight:500}
+.ai-up{color:#0F6E56}
+.ai-down{color:#A32D2D}
+.ai-same{color:#888}
+.ai-load-btn{display:block;width:100%;margin-top:8px;padding:5px;border-radius:7px;border:0.5px solid #AFA9EC;background:#EEEDFE;color:#3C3489;font-size:11px;cursor:pointer;font-family:inherit;font-weight:500}
+html.dark .ai-load-btn{background:#1a1830;border-color:#534AB7;color:#CECBF6}
+
+.cardio{margin-top:8px;padding:6px 10px;border-radius:7px;font-size:11px;background:#E6F1FB;color:#0C447C;border:0.5px solid #85B7EB}
+.rest-txt{font-size:13px;text-align:center;padding:8px 0}
+html.light .rest-txt{color:#888}
+html.dark .rest-txt{color:#555}
+
+.btn-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.save-btn{padding:8px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;border:0.5px solid;background:#EEEDFE;border-color:#AFA9EC;color:#3C3489}
+html.dark .save-btn{background:#1a1830;border-color:#534AB7;color:#CECBF6}
+.miss-btn{padding:8px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;border:0.5px solid;transition:.15s}
+html.light .miss-btn{background:#f5f5f5;border-color:#ddd;color:#555}
+html.dark .miss-btn{background:#1e1e1e;border-color:#444;color:#888}
+.miss-btn.marked{background:#FCEBEB;border-color:#F09595;color:#A32D2D}
+.hint{text-align:center;font-size:10px;margin-top:5px}
+html.light .hint{color:#aaa}
+html.dark .hint{color:#555}
+.hist-title{font-size:11px;font-weight:500;margin:14px 0 6px}
+html.light .hist-title{color:#888}
+html.dark .hist-title{color:#666}
+.hist-row{display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:0.5px solid}
+html.light .hist-row{color:#888;border-color:#eee}
+html.dark .hist-row{color:#666;border-color:#222}
+.hist-val{font-weight:500}
+html.light .hist-val{color:#1a1a1a}
+html.dark .hist-val{color:#e8e8e8}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top-bar">
+    <h1>Arnold Split · Tracker</h1>
+    <div class="top-right">
+      <button class="icon-btn" id="profile-btn" title="Mi perfil">
+        <i class="ti ti-user" style="font-size:13px"></i>
+        <span>Perfil</span>
+      </button>
+      <button class="icon-btn" id="export-btn" title="Exportar datos" onclick="exportData()">
+        <i class="ti ti-download" style="font-size:13px"></i>
+        <span>Exportar</span>
+      </button>
+      <button class="icon-btn" id="import-btn" title="Importar datos" onclick="importData()">
+        <i class="ti ti-upload" style="font-size:13px"></i>
+        <span>Importar</span>
+      </button>
+      <button class="icon-btn" id="theme-btn">
+        <i class="ti ti-sun" id="theme-icon" style="font-size:13px"></i>
+        <span id="theme-txt">Claro</span>
+      </button>
+    </div>
+  </div>
+  <p class="sub">Pesos personalizados con IA · <span style="color:#7F77DD">En iPhone: exporta para guardar tus datos</span></p>
+
+  <!-- Chip perfil -->
+  <div class="profile-chip" id="profile-chip" onclick="openModal()">
+    <i class="ti ti-user-circle" style="font-size:20px;color:#7F77DD"></i>
+    <span class="chip-info" id="chip-info">Configura tu perfil para sugerencias personalizadas</span>
+    <span class="chip-edit"><i class="ti ti-pencil" style="font-size:12px"></i></span>
+  </div>
+
+  <!-- Stats constancia -->
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-val" id="s-att">0</div><div class="stat-lbl">asistidos</div></div>
+    <div class="stat-card"><div class="stat-val" id="s-miss">0</div><div class="stat-lbl">perdidos</div></div>
+    <div class="stat-card"><div class="stat-val" id="s-pct">—</div><div class="stat-lbl">constancia</div></div>
+  </div>
+
+  <div class="day-tabs" id="day-tabs"></div>
+  <div class="week-bar">
+    <button id="prev-w">&#8592;</button>
+    <span class="week-label" id="week-label">Semana 1</span>
+    <button id="next-w">&#8594;</button>
+  </div>
+
+  <div id="day-content"></div>
+
+  <!-- Sugerencia IA próxima semana -->
+  <div class="ai-box" id="ai-box">
+    <div class="ai-title"><i class="ti ti-brain" style="vertical-align:-1px;margin-right:3px"></i>Sugerencia IA — próxima semana</div>
+    <div id="ai-content"><em style="font-size:10px;opacity:.6">Presiona el botón para obtener sugerencias...</em></div>
+    <button class="ai-load-btn" id="ai-btn">✨ Sugerir pesos para próxima semana</button>
+  </div>
+
+  <div class="btn-row" id="btn-row" style="display:none">
+    <button class="save-btn" id="save-btn"><i class="ti ti-device-floppy" style="font-size:14px;vertical-align:-2px;margin-right:5px"></i>Guardar</button>
+    <button class="miss-btn" id="miss-btn"><i class="ti ti-x" style="font-size:14px;vertical-align:-2px;margin-right:5px"></i>No fui</button>
+  </div>
+  <p class="hint" id="hint"></p>
+  <div id="history-block"></div>
+</div>
+
+<!-- Modal perfil -->
+<div class="modal-overlay" id="modal" style="display:none">
+  <div class="modal">
+    <div class="modal-title"><i class="ti ti-user-circle"></i>Tu perfil</div>
+
+    <div class="field-group">
+      <div class="field-label">Peso corporal y estatura</div>
+      <div class="field-row">
+        <input class="field-inp" type="number" id="p-peso" placeholder="Peso (kg)" min="30" max="250">
+        <input class="field-inp" type="number" id="p-altura" placeholder="Altura (cm)" min="100" max="230">
+      </div>
+    </div>
+
+    <div class="field-group">
+      <div class="field-label">Nivel de experiencia</div>
+      <div class="select-group" id="nivel-group">
+        <button class="sel-btn" data-val="principiante">Principiante</button>
+        <button class="sel-btn" data-val="intermedio">Intermedio</button>
+        <button class="sel-btn" data-val="avanzado">Avanzado</button>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <div class="field-label">Objetivo principal</div>
+      <div class="select-group" id="objetivo-group">
+        <button class="sel-btn" data-val="hipertrofia">Hipertrofia</button>
+        <button class="sel-btn" data-val="fuerza">Fuerza</button>
+        <button class="sel-btn" data-val="resistencia">Resistencia</button>
+        <button class="sel-btn" data-val="definicion">Definición</button>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <div class="field-label">Sexo biológico <span style="opacity:.5;font-size:9px">(afecta los cálculos)</span></div>
+      <div class="select-group" id="sexo-group">
+        <button class="sel-btn" data-val="hombre">Hombre</button>
+        <button class="sel-btn" data-val="mujer">Mujer</button>
+      </div>
+    </div>
+
+    <button class="modal-save" id="modal-save">Guardar perfil</button>
+    <button class="icon-btn" style="width:100%;justify-content:center;margin-top:8px" id="modal-cancel">Cancelar</button>
+  </div>
+</div>
+
+<script>
+// ── Datos de días ──
+const DAYS_DATA = [
+  {key:'lun',name:'Lun',fullName:'Lunes',focus:'Pecho + Espalda',type:'purple',
+    sections:[
+      {label:'Pecho',t:'p',exs:[
+        {id:'pec1',name:'Pecho inclinado mancuernas',sets:'4×10'},
+        {id:'pec2',name:'Pectoral máquina plano',sets:'3×12'},
+        {id:'pec3',name:'Peck deck (contractor)',sets:'3×12'},
+      ]},
+      {label:'Espalda',t:'t',exs:[
+        {id:'esp1',name:'Jalón agarre neutro (triángulo)',sets:'4×10'},
+        {id:'esp2',name:'Remo en polea baja sentado',sets:'3×12'},
+        {id:'esp3',name:'Jalón abierto en polea',sets:'3×10'},
+      ]},
+    ],cardio:true},
+  {key:'mar',name:'Mar',fullName:'Martes',focus:'Hombros + Brazos',type:'teal',
+    sections:[
+      {label:'Hombros',t:'t',exs:[
+        {id:'hom1',name:'Press militar mancuernas sentado',sets:'4×10'},
+        {id:'hom2',name:'Elevaciones laterales mancuernas',sets:'3×12'},
+        {id:'hom3',name:'Aperturas posteriores',sets:'3×12'},
+      ]},
+      {label:'Bíceps',t:'p',exs:[
+        {id:'bic1',name:'Curl araña',sets:'3×12'},
+        {id:'bic2',name:'Curl unilateral polea baja',sets:'3×12'},
+        {id:'bic3',name:'Martillo cuerda en polea',sets:'3×12'},
+      ]},
+      {label:'Tríceps',t:'p',exs:[
+        {id:'tri1',name:'Tríceps polea agarre V',sets:'3×12'},
+        {id:'tri2',name:'Extensión overhead agarre V',sets:'3×12'},
+      ]},
+    ],cardio:true},
+  {key:'mie',name:'Mié',fullName:'Miércoles',focus:'Descanso',type:'rest'},
+  {key:'jue',name:'Jue',fullName:'Jueves',focus:'Pecho + Espalda',type:'purple',
+    sections:[
+      {label:'Pecho',t:'p',exs:[
+        {id:'pec1',name:'Pecho inclinado mancuernas',sets:'4×10'},
+        {id:'pec2',name:'Pectoral máquina plano',sets:'3×12'},
+        {id:'pec3',name:'Peck deck (contractor)',sets:'3×12'},
+      ]},
+      {label:'Espalda',t:'t',exs:[
+        {id:'esp1',name:'Jalón agarre neutro (triángulo)',sets:'4×10'},
+        {id:'esp2',name:'Remo en polea baja sentado',sets:'3×12'},
+        {id:'esp3',name:'Jalón abierto en polea',sets:'3×10'},
+      ]},
+    ],cardio:true},
+  {key:'vie',name:'Vie',fullName:'Viernes',focus:'Hombros + Brazos',type:'teal',
+    sections:[
+      {label:'Hombros',t:'t',exs:[
+        {id:'hom1',name:'Press militar mancuernas sentado',sets:'4×10'},
+        {id:'hom2',name:'Elevaciones laterales mancuernas',sets:'3×12'},
+        {id:'hom3',name:'Aperturas posteriores',sets:'3×12'},
+      ]},
+      {label:'Bíceps',t:'p',exs:[
+        {id:'bic1',name:'Curl araña',sets:'3×12'},
+        {id:'bic2',name:'Curl unilateral polea baja',sets:'3×12'},
+        {id:'bic3',name:'Martillo cuerda en polea',sets:'3×12'},
+      ]},
+      {label:'Tríceps',t:'p',exs:[
+        {id:'tri1',name:'Tríceps polea agarre V',sets:'3×12'},
+        {id:'tri2',name:'Extensión overhead agarre V',sets:'3×12'},
+      ]},
+    ],cardio:true},
+  {key:'sab',name:'Sáb',fullName:'Sábado',focus:'Libre',type:'rest'},
+  {key:'dom',name:'Dom',fullName:'Domingo',focus:'Descanso',type:'rest'},
+];
+
+const TODAY_IDX = (new Date().getDay()+6)%7;
+let currentDay = TODAY_IDX, currentWeek = 1, isDark = false;
+let userProfile = {peso:'', altura:'', nivel:'', objetivo:'', sexo:''};
+
+// ── Perfil storage ──
+function loadProfile(){
+  const p = _lsGet('as_profile');
+  if(p){ try{ userProfile = JSON.parse(p); }catch(e){} }
+  updateChip();
+}
+function saveProfile(){
+  _lsSet('as_profile', JSON.stringify(userProfile));
+}
+function updateChip(){
+  const chip = document.getElementById('chip-info');
+  if(userProfile.peso && userProfile.altura && userProfile.nivel){
+    chip.textContent = `${userProfile.peso}kg · ${userProfile.altura}cm · ${userProfile.nivel} · ${userProfile.objetivo||'sin objetivo'} · ${userProfile.sexo||''}`;
+  } else {
+    chip.textContent = 'Configura tu perfil para sugerencias personalizadas';
+  }
+}
+
+// ── Modal ──
+function openModal(){
+  document.getElementById('p-peso').value = userProfile.peso||'';
+  document.getElementById('p-altura').value = userProfile.altura||'';
+  ['nivel','objetivo','sexo'].forEach(field=>{
+    document.querySelectorAll(`#${field}-group .sel-btn`).forEach(btn=>{
+      btn.classList.toggle('active', btn.dataset.val===userProfile[field]);
+    });
+  });
+  document.getElementById('modal').style.display='flex';
+}
+function closeModal(){ document.getElementById('modal').style.display='none'; }
+
+document.getElementById('profile-btn').addEventListener('click', openModal);
+document.getElementById('modal-cancel').addEventListener('click', closeModal);
+document.getElementById('modal').addEventListener('click', e=>{ if(e.target===document.getElementById('modal')) closeModal(); });
+
+['nivel','objetivo','sexo'].forEach(field=>{
+  document.querySelectorAll(`#${field}-group .sel-btn`).forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll(`#${field}-group .sel-btn`).forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+});
+
+document.getElementById('modal-save').addEventListener('click',()=>{
+  userProfile.peso = document.getElementById('p-peso').value;
+  userProfile.altura = document.getElementById('p-altura').value;
+  userProfile.nivel = document.querySelector('#nivel-group .sel-btn.active')?.dataset.val||'';
+  userProfile.objetivo = document.querySelector('#objetivo-group .sel-btn.active')?.dataset.val||'';
+  userProfile.sexo = document.querySelector('#sexo-group .sel-btn.active')?.dataset.val||'';
+  saveProfile();
+  updateChip();
+  closeModal();
+  // Si hay perfil completo y semana 1, cargar sugerencias iniciales
+  if(userProfile.peso && userProfile.nivel) loadInitialSuggestions();
+});
+
+// ── Storage: memoria + localStorage con fallback ──
+let MEM = {};
+function _lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return MEM[k]??null; } }
+function _lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} MEM[k]=v; }
+function _lsDel(k){ try{ localStorage.removeItem(k); }catch(e){} delete MEM[k]; }
+function _lsKeys(){ 
+  let keys=Object.keys(MEM);
+  try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k&&!keys.includes(k)) keys.push(k); } }catch(e){}
+  return keys;
+}
+
+function wKey(w,dk,id,suffix){ return `as_w${w}_${dk}_${id}${suffix||''}`; }
+function missKey(w,dk){ return `as_miss_w${w}_${dk}`; }
+function attKey(w,dk){ return `as_att_w${w}_${dk}`; }
+function isMissed(w,dk){ return _lsGet(missKey(w,dk))==='1'; }
+function isAtt(w,dk){ return _lsGet(attKey(w,dk))==='1'; }
+function loadVal(dk,id,suffix){ return _lsGet(wKey(currentWeek,dk,id,suffix))||''; }
+function prevVal(dk,id,suffix){ if(currentWeek<=1)return null; return _lsGet(wKey(currentWeek-1,dk,id,suffix)); }
+function loadSuggest(dayKey,exId){ return _lsGet(`as_sug_${dayKey}_${exId}`)||''; }
+function saveSuggest(dayKey,exId,val){ _lsSet(`as_sug_${dayKey}_${exId}`,val); }
+
+// ── Export / Import ──
+function exportData(){
+  const data={};
+  _lsKeys().filter(k=>k.startsWith('as_')).forEach(k=>{ data[k]=_lsGet(k); });
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download='arnold_tracker_backup.json'; a.click();
+  URL.revokeObjectURL(url);
+}
+function importData(){
+  const inp=document.createElement('input');
+  inp.type='file'; inp.accept='.json';
+  inp.addEventListener('change',e=>{
+    const file=e.target.files[0]; if(!file)return;
+    const r=new FileReader();
+    r.onload=ev=>{
+      try{
+        const data=JSON.parse(ev.target.result);
+        Object.entries(data).forEach(([k,v])=>_lsSet(k,v));
+        loadProfile(); renderAll();
+        alert('✅ Datos importados correctamente');
+      }catch(err){ alert('Error al importar: archivo no válido'); }
+    };
+    r.readAsText(file);
+  });
+  inp.click();
+}
+
+// ── Theme ──
+function applyTheme(){
+  document.documentElement.className = isDark?'dark':'light';
+  document.getElementById('theme-icon').className = isDark?'ti ti-moon':'ti ti-sun';
+  document.getElementById('theme-txt').textContent = isDark?'Oscuro':'Claro';
+}
+document.getElementById('theme-btn').addEventListener('click',()=>{ isDark=!isDark; applyTheme(); });
+
+// ── Stats ──
+function updateStats(){
+  let att=0,miss=0;
+  DAYS_DATA.forEach(d=>{
+    if(d.type==='rest') return;
+    for(let w=1;w<=currentWeek;w++){
+      if(isAtt(w,d.key))att++;
+      if(isMissed(w,d.key))miss++;
+    }
+  });
+  const tot=att+miss;
+  document.getElementById('s-att').textContent=att;
+  document.getElementById('s-miss').textContent=miss;
+  document.getElementById('s-pct').textContent=tot>0?Math.round(att/tot*100)+'%':'—';
+}
+
+// ── Tabs ──
+function renderTabs(){
+  const c=document.getElementById('day-tabs'); c.innerHTML='';
+  DAYS_DATA.forEach((d,i)=>{
+    const btn=document.createElement('button');
+    btn.className='day-tab';
+    btn.textContent=d.name;
+    if(i===TODAY_IDX) btn.classList.add('today');
+    if(i===currentDay) btn.classList.add(d.type==='purple'?'active-p':d.type==='teal'?'active-t':'active-r');
+    if(isMissed(currentWeek,d.key)) btn.classList.add('missed');
+    const dot=document.createElement('span'); dot.className='dot';
+    if(isAtt(currentWeek,d.key)) dot.style.background='#1D9E75';
+    else if(isMissed(currentWeek,d.key)) dot.style.background='#E24B4A';
+    if(dot.style.background) btn.appendChild(dot);
+    btn.addEventListener('click',()=>{ currentDay=i; renderAll(); });
+    c.appendChild(btn);
+  });
+}
+
+// ── Day content ──
+function renderDay(){
+  const day=DAYS_DATA[currentDay];
+  const content=document.getElementById('day-content');
+  const btnRow=document.getElementById('btn-row');
+  const aiBox=document.getElementById('ai-box');
+  const missBtn=document.getElementById('miss-btn');
+  const missed=isMissed(currentWeek,day.key);
+
+  missBtn.className='miss-btn'+(missed?' marked':'');
+  missBtn.innerHTML=missed
+    ?'<i class="ti ti-x" style="font-size:14px;vertical-align:-2px;margin-right:5px"></i>No fui (deshacer)'
+    :'<i class="ti ti-x" style="font-size:14px;vertical-align:-2px;margin-right:5px"></i>No fui';
+
+  if(day.type==='rest'){
+    content.innerHTML=`<div class="card d-rest"><div class="card-header"><span class="card-title">${day.fullName}</span><span class="badge br">${day.focus}</span></div><div class="rest-txt">${day.focus==='Descanso'?'Descanso — el músculo crece ahora 💪':'Día libre — disfrútalo'}</div></div>`;
+    btnRow.style.display='none';
+    aiBox.style.display='none';
+    return;
+  }
+  btnRow.style.display='grid';
+  aiBox.style.display = currentWeek > 1 ? 'block' : 'none';
+
+  const isPurple=day.type==='purple';
+  const tagCls = isPurple?'sug-purple':'sug-teal';
+  let html=`<div class="card ${isPurple?'d-purple':'d-teal'}">
+    <div class="card-header">
+      <span class="card-title">${day.fullName}</span>
+      <span class="badge ${isPurple?'bp':'bt'}">${day.focus}</span>
+    </div>`;
+
+  day.sections.forEach(sec=>{
+    html+=`<div class="section"><div class="sec-label ${sec.t==='p'?'lp':'lt'}">${sec.label}</div>`;
+    sec.exs.forEach(ex=>{
+      const kg=loadVal(day.key,ex.id,'_kg');
+      const reps=loadVal(day.key,ex.id,'_reps');
+      const prevKg=prevVal(day.key,ex.id,'_kg');
+      const k_kg=wKey(currentWeek,day.key,ex.id,'_kg');
+      const k_reps=wKey(currentWeek,day.key,ex.id,'_reps');
+      const suggest=loadSuggest(day.key,ex.id);
+
+      // Parse sets string e.g. "4×10" → series=4, reps=10
+      const setsMatch = ex.sets.match(/(\d+)[×x](\d+)/);
+      const nSeries = setsMatch?setsMatch[1]:'?';
+      const nReps   = setsMatch?setsMatch[2]:'?';
+
+      let diffHtml='';
+      if(prevKg!==null&&prevKg!==''){
+        const df=parseFloat(kg||0)-parseFloat(prevKg);
+        if(kg&&df>0) diffHtml=`<span class="diff-up">+${df.toFixed(1)}</span>`;
+        else if(kg&&df<0) diffHtml=`<span class="diff-down">${df.toFixed(1)}</span>`;
+        else if(kg) diffHtml=`<span class="diff-same">= sem ant</span>`;
+        else diffHtml=`<span class="diff-same">ant: ${prevKg}kg</span>`;
+      }
+
+      // Sugerencia tag
+      let sugTag = '';
+      if(suggest){
+        sugTag = `<span class="ai-suggest-tag ${tagCls}">✦ ${suggest}</span>`;
+      } else if(userProfile.peso && userProfile.nivel) {
+        sugTag = `<span class="ai-suggest-tag sug-loading" data-daykey="${day.key}" data-exid="${ex.id}">cargando...</span>`;
+      }
+
+      html+=`<div class="ex-row ${sec.t==='p'?'ep':'et'}">
+        <div class="ex-top">
+          <span class="ex-name">${ex.name}</span>
+          ${sugTag}
+        </div>
+        <div class="ex-bottom">
+          <span class="sets-info">${nSeries} series × ${nReps} reps</span>
+          <div class="inp-group">
+            <input class="w-inp" type="number" min="0" step="0.5" placeholder="kg" value="${kg}" data-k="${k_kg}" aria-label="Peso ${ex.name}">
+            <span class="inp-lbl">kg</span>
+          </div>
+          <div class="inp-group">
+            <input class="r-inp" type="number" min="0" step="1" placeholder="reps" value="${reps}" data-k="${k_reps}" aria-label="Reps ${ex.name}">
+            <span class="inp-lbl">reps reales</span>
+          </div>
+          ${diffHtml}
+        </div>
+      </div>`;
+    });
+    html+='</div>';
+  });
+  if(day.cardio) html+=`<div class="cardio"><i class="ti ti-run" style="font-size:13px;vertical-align:-1px;margin-right:4px"></i>Caminadora 20 min · Vel 5.0 · Inc 13</div>`;
+  html+='</div>';
+  content.innerHTML=html;
+}
+
+// ── History ──
+function renderHistory(){
+  const day=DAYS_DATA[currentDay];
+  const block=document.getElementById('history-block');
+  if(day.type==='rest'||currentWeek<=1){block.innerHTML='';return;}
+  let allExs=[];
+  day.sections.forEach(sec=>sec.exs.forEach(ex=>allExs.push({...ex,dayKey:day.key})));
+  const hasHist=allExs.some(ex=>prevVal(ex.dayKey,ex.id,'_kg')!==null);
+  if(!hasHist){block.innerHTML='';return;}
+  let html=`<p class="hist-title"><i class="ti ti-history" style="font-size:13px;vertical-align:-2px;margin-right:4px"></i>Semana anterior</p>`;
+  allExs.forEach(ex=>{
+    const v=prevVal(ex.dayKey,ex.id,'_kg');
+    const r=prevVal(ex.dayKey,ex.id,'_reps');
+    if(v) html+=`<div class="hist-row"><span>${ex.name}</span><span class="hist-val">${v}kg${r?' × '+r+' reps reales':''}</span></div>`;
+  });
+  block.innerHTML=html;
+}
+
+function renderAll(){ renderTabs(); renderDay(); renderHistory(); updateStats(); }
+
+// ── Sugerencias iniciales (sem 1, basado solo en perfil) ──
+async function loadInitialSuggestions(){
+  const day = DAYS_DATA[currentDay];
+  if(day.type==='rest') return;
+  if(!userProfile.peso || !userProfile.nivel) return;
+
+  // Verificar si ya hay sugerencias guardadas para este día
+  const allExs = day.sections.flatMap(s=>s.exs);
+  const alreadyHas = allExs.every(ex=>loadSuggest(day.key,ex.id));
+  if(alreadyHas) return;
+
+  const prompt = `Eres entrenador personal experto en Arnold Split. El usuario tiene este perfil:
+- Peso corporal: ${userProfile.peso}kg
+- Estatura: ${userProfile.altura||'no indicada'}cm
+- Sexo: ${userProfile.sexo||'no indicado'}
+- Nivel: ${userProfile.nivel}
+- Objetivo: ${userProfile.objetivo||'hipertrofia'}
+
+Día de entrenamiento: ${day.fullName} (${day.focus})
+Ejercicios:
+${allExs.map(ex=>`- ${ex.name} (${ex.sets})`).join('\n')}
+
+Sugiere un peso inicial realista para cada ejercicio considerando el perfil del usuario. Los pesos deben ser para mancuernas/máquinas en el gym. Sé conservador y realista.
+
+Responde SOLO en JSON válido, sin markdown, sin comentarios. Formato exacto:
+[{"id":"id_del_ejercicio","kg":"Xkg","reps":"N reps"}]
+
+IDs disponibles: ${allExs.map(e=>e.id).join(', ')}`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:800,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    const data = await resp.json();
+    const text = data.content.map(b=>b.text||'').join('').trim();
+    const clean = text.replace(/```json|```/g,'').trim();
+    const suggestions = JSON.parse(clean);
+    suggestions.forEach(s=>{
+      saveSuggest(day.key, s.id, `${s.kg} · ${s.reps}`);
+    });
+    renderDay();
+  } catch(e){ console.error('Error sugerencias iniciales', e); }
+}
+
+// ── Save ──
+document.getElementById('save-btn').addEventListener('click',()=>{
+  const day=DAYS_DATA[currentDay]; if(day.type==='rest')return;
+  let saved=0;
+  document.querySelectorAll('.w-inp,.r-inp').forEach(inp=>{
+    if(inp.value){ _lsSet(inp.dataset.k,inp.value); saved++; }
+  });
+  try{_lsSet(attKey(currentWeek,day.key),'1');_lsDel(missKey(currentWeek,day.key));}catch(e){}
+  document.getElementById('hint').textContent=saved>0?`${saved} campos guardados ✓`:'Asistencia registrada ✓';
+  setTimeout(()=>{ document.getElementById('hint').textContent=''; },1800);
+  renderAll();
+});
+
+// ── No fui ──
+document.getElementById('miss-btn').addEventListener('click',()=>{
+  const day=DAYS_DATA[currentDay]; if(day.type==='rest')return;
+  const wasMissed=isMissed(currentWeek,day.key);
+  try{
+    wasMissed ? _lsDel(missKey(currentWeek,day.key)) : _lsSet(missKey(currentWeek,day.key),'1');
+    if(!wasMissed) _lsDel(attKey(currentWeek,day.key));
+  }catch(e){}
+  document.getElementById('hint').textContent=wasMissed?'Marcado como asistido':'Día marcado como no asistido';
+  setTimeout(()=>{ document.getElementById('hint').textContent=''; },1800);
+  renderAll();
+});
+
+// ── Week nav ──
+document.getElementById('prev-w').addEventListener('click',()=>{
+  if(currentWeek>1){ currentWeek--; document.getElementById('week-label').textContent='Semana '+currentWeek; renderAll(); }
+});
+document.getElementById('next-w').addEventListener('click',()=>{
+  currentWeek++; document.getElementById('week-label').textContent='Semana '+currentWeek; renderAll();
+});
+
+// ── IA sugerencias próxima semana ──
+document.getElementById('ai-btn').addEventListener('click', async ()=>{
+  const day=DAYS_DATA[currentDay];
+  if(day.type==='rest') return;
+  if(currentWeek<=1){ alert('Necesitas datos de al menos una semana anterior.'); return; }
+
+  let exercisesData = [];
+  day.sections.forEach(sec=>{
+    sec.exs.forEach(ex=>{
+      const kg = prevVal(day.key, ex.id, '_kg');
+      const reps = prevVal(day.key, ex.id, '_reps');
+      const kgThis = loadVal(day.key, ex.id, '_kg');
+      const repsThis = loadVal(day.key, ex.id, '_reps');
+      exercisesData.push({
+        id: ex.id,
+        nombre: ex.name,
+        series: ex.sets,
+        semanaAnterior: kg ? `${kg}kg × ${reps||'?'} reps` : null,
+        semanaActual: kgThis ? `${kgThis}kg × ${repsThis||'?'} reps` : null,
+      });
+    });
+  });
+
+  const aiContent=document.getElementById('ai-content');
+  const aiBox=document.getElementById('ai-box');
+  aiBox.classList.add('loading');
+  aiContent.innerHTML='<em style="font-size:10px;opacity:.6">⏳ Consultando IA...</em>';
+
+  const profileCtx = userProfile.peso
+    ? `Perfil usuario: ${userProfile.peso}kg, ${userProfile.altura||'?'}cm, ${userProfile.sexo||'?'}, nivel ${userProfile.nivel||'?'}, objetivo ${userProfile.objetivo||'hipertrofia'}.`
+    : '';
+
+  const prompt = `Eres entrenador personal experto en Arnold Split. ${profileCtx}
+Día: ${day.fullName} (${day.focus}).
+
+Datos de ejercicios esta semana y semana anterior:
+${exercisesData.map(e=>`- ${e.nombre} (${e.series}): sem anterior: ${e.semanaAnterior||'sin dato'}, sem actual: ${e.semanaActual||'sin dato'}`).join('\n')}
+
+Para cada ejercicio sugiere peso Y reps para la PRÓXIMA semana. Aplica progresión inteligente:
+- Si completó o superó las reps objetivo → sube 1-2.5kg, mantén reps objetivo
+- Si quedó corto en reps → mantén peso, sugiere 1-2 reps menos primero
+- Si bajó el peso → sugiere mantener o bajar más y enfocarse en forma
+- Sé específico con números reales de mancuernas/máquinas (2.5, 5, 7.5, 10, 12.5, 15, 17.5, 20...)
+
+Responde SOLO en JSON válido. Formato exacto:
+[{"ejercicio":"nombre","kg":"Xkg","reps":"N reps","series":"N series","razon":"max 8 palabras","tendencia":"up|same|down"}]`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await response.json();
+    const text = data.content.map(b=>b.text||'').join('').trim();
+    const clean = text.replace(/```json|```/g,'').trim();
+    const suggestions = JSON.parse(clean);
+
+    let html='';
+    suggestions.forEach(s=>{
+      const icon = s.tendencia==='up'?'↑':s.tendencia==='down'?'↓':'→';
+      const cls = s.tendencia==='up'?'ai-up':s.tendencia==='down'?'ai-down':'ai-same';
+      html+=`<div class="ai-item">
+        <strong>${s.ejercicio}</strong><br>
+        <span class="ai-rec ${cls}">${icon} ${s.series} series × ${s.reps} · ${s.kg}</span>
+        <span style="opacity:.55;margin-left:5px">${s.razon}</span>
+      </div>`;
+    });
+    aiContent.innerHTML=html;
+  } catch(err) {
+    aiContent.innerHTML='<em style="font-size:10px;color:#A32D2D">Error al obtener sugerencias. Intenta de nuevo.</em>';
+  }
+  aiBox.classList.remove('loading');
+});
+
+// ── Init ──
+loadProfile();
+applyTheme();
+renderAll();
+// Si ya hay perfil guardado, cargar sugerencias para el día actual
+if(userProfile.peso && userProfile.nivel) loadInitialSuggestions();
+</script>
+</body>
+</html>
